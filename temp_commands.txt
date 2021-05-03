@@ -7,7 +7,7 @@ $export PATH=~/bin:$PATH
 $sudo apt-get install repo
 
 $git config --global user.name "Sandeep Raj"
-$git config --global user.name "sandeep.raj@aztech.com"
+$git config --global user.name "betanapallisandeepraj@gmail.com"
 $git config --list
 
 $mkdir imx-yocto-bsp
@@ -152,7 +152,7 @@ wifi setup on the board,
 add wifi ssid and password as below,
 network={
 	scan_ssid=1
-	ssid="Aztech_WMB250AC"
+	ssid="Sandeep_Wifi"
 	psk="D7BB0021"
 }
 #wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant.conf -D nl80211
