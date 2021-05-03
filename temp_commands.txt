@@ -1,0 +1,315 @@
+$sudo apt-get install gawk wget git-core diffstat unzip texinfo gcc-multilib build-essential chrpath socat cpio python python3 python3-pip python3-pexpect xz-utils debianutils iputils-ping python3-git python3-jinja2 libegl1-mesa libsdl1.2-dev pylint3 xterm
+
+$mkdir ~/bin
+$curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+$chmod a+x ~/bin/repo
+$export PATH=~/bin:$PATH
+$sudo apt-get install repo
+
+$git config --global user.name "Sandeep Raj"
+$git config --global user.name "sandeep.raj@aztech.com"
+$git config --list
+
+$mkdir imx-yocto-bsp
+$cd imx-yocto-bsp
+$repo init -u https://source.codeaurora.org/external/imx/imx-manifest -b imx-linux-zeus -m imx-5.4.47-2.2.0.xml
+or
+$repo init -u https://source.codeaurora.org/external/imx/imx-manifest -b imx-linux-zeus -m imx-5.4.70-2.3.0.xml
+or 
+$repo init -u https://source.codeaurora.org/external/imx/imx-manifest -b imx-linux-zeus -m imx-5.4.70-2.3.1.xml
+$repo sync
+
+
+$cd /home/sandeepraj/imx-yocto-bsp
+$DISTRO=fsl-imx-wayland MACHINE=imx8mnevk source imx-setup-release.sh -b build-wayland
+
+for full image,
+$DISTRO=fsl-imx-xwayland MACHINE=imx8mnevk source imx-setup-release.sh -b build-wayland
+$pwd
+/home/sandeepraj/imx-yocto-bsp/build-wayland
+$bitbake -k core-image-minimal
+$bitbake -k core-image-base
+$bitbake -k imx-image-core
+$bitbake -k imx-image-multimedia
+$bitbake -k imx-image-full
+
+$pwd
+/home/sandeepraj/imx-yocto-bsp/build-wayland
+$ bitbake -c menuconfig virtual/kernel
+$ bitbake -c compile -f linux-imx
+$ bitbake -c compile -f u-boot-imx
+$ MACHINE=imx8mnevk bitbake u-boot-imx
+$ bitbake -c cleanall core-image-minimal
+$ bitbake -c cleanall linux-imx
+$ bitbake -c cleanall <any recipe>
+$ bitbake core-image-minimal -c cleansstate
+$ bitbake core-image-base -c cleansstate
+$ bitbake imx-image-full -c cleansstate
+$ bitbake world
+
+$ bitbake-layers show-layers
+$ bitbake-layers show-recipes
+$ bitbake -c cleanall kernel-pcitest
+--------------------------------------------------------------------------------------
+To build uboot,
+
+$pwd
+/home/sandeepraj/imx-yocto-bsp/build-wayland
+$DISTRO=fsl-imx-wayland MACHINE=imx8mnevk bitbake core-image-minimal -c populate_sdk
+or
+$DISTRO=fsl-imx-wayland MACHINE=imx8mnevk bitbake core-image-base -c populate_sdk
+or
+$DISTRO=fsl-imx-wayland MACHINE=imx8mnevk bitbake imx-image-full -c populate_sdk
+$pwd
+/home/sandeepraj/imx-yocto-bsp/build-wayland/tmp/deploy/sdk
+$sudo cp fsl-imx-wayland-glibc-x86_64-core-image-base-aarch64-imx8mnevk-toolchain-5.4-zeus.sh /opt/
+$cd /opt/
+$./fsl-imx-wayland-glibc-x86_64-core-image-base-aarch64-imx8mnevk-toolchain-5.4-zeus.sh
+
+$pwd
+/home/sandeepraj/imx-yocto-bsp1/build-wayland/tmp/work/imx8mnevk-poky-linux/u-boot-imx/1_2020.04-r0/build/imx8mn_evk_config
+
+or goto downloaded uboot source code and do below steps,
+$cd uboot
+$. /opt/fsl-imx-wayland/5.4-zeus/environment-setup-aarch64-poky-linux
+or
+$source /opt/fsl-imx-wayland/5.4-zeus/environment-setup-aarch64-poky-linux
+$echo $CC
+$export ARCH=arm64
+$make distclean
+$make imx8mn_defconfig		--> in uboot/configs/ directory we can find uboot configurations
+$make menuconfig
+$make
+
+------------------------------------------------------------------------------------
+aarch64-poky-linux-gcc
+CC=arm-linux-gnueabihf-gcc
+-------------------------------------------------------------------------------------
+bluetooth commands,
+$pwd
+/home/sandeepraj/bluetooth_src/ble-mesh-gateway-v1.2-GA/ble-mesh-gw-v1.2-ga/src/ports/posix
+$make -f posix.mk clean
+$make -f posix.mk ----> for intel or native build
+$make -f posix.mk CC=arm-linux-gnueabihf-gcc LD=arm-linux-gnueabihf-gcc
+
+-----------------------------------------------------------------------------------------------
+/home/sandeepraj/imx-yocto-bsp/build-wayland/tmp/work/imx8mnevk-poky-linux/linux-imx/5.4-r0/git/arch/arm64/boot/dts/freescale/imx8mn.dtsi
+-----------------------------------------------------------------------------------------------
+save make build log into a file,
+$make 2>&1 | tee ble_x86_compilation.log
+-----------------------------------------------------------------------------------------------
+bluetooth application and library compilation,
+for generating library for board,
+$pwd
+/home/sandeepraj/bluetooth_src/ble-mesh-gateway-v1.2-GA/ble-mesh-gw-v1.2-ga/src/ports/posix
+$vim posix.mk
+replace below lines,
+CC=aarch64-linux-gnu-gcc
+LD=aarch64-linux-gnu-gcc
+AR=aarch64-linux-gnu-ar
+
+After that,
+$make -f posix.mk
+to clean,
+$make -f posix.mk clean
+
+To build actual bluetooth application,
+$pwd
+/home/sandeepraj//blu_app/ble-mesh-gateway-v1.2-GA/sso
+$make CC=aarch64-linux-gnu-gcc
+----------------------------------------------------------------------------------------------
+Building file: sl_interface.c
+gcc -DMESH_GW_POSIX   -DLINUX -I../../../inc/ -I../../../inc/posix/ -I../../../inc/core-inc -I../../../inc/ports-inc -I../../../inc/ports-inc/posix -I../../../inc/security-inc -I../../../inc/utility-inc -I../../../src/ports/posix/sample -fno-short-enums -Wall -c -fmessage-length=0 -std=gnu99 -fPIC -lpthread -lrt -O2 -MMD -MP -MF build/sl_interface.d -Wall -ggdb -c -o build/sl_interface.o sl_interface.c
+
+Linking target: build/libslbtmeshgw.so
+gcc -Wall -ggdb build/os_abs_posix.o build/mesh_gw_posix_time.o build/mesh_gw_posix_mq.o build/mesh_gw_posix_file.o build/debug_print.o build/uart_posix.o build/cmd_host.o build/cmd_host_handler.o build/bgapi_proc.o build/gecko_bglib.o build/model_id.o build/device_table.o build/tables.o build/data_hub.o build/mesh_obj.o build/cb_dispatcher.o build/api_impl.o build/mesh_gw_timer.o build/comm_queue.o build/prbFsm.o build/cmd_obj.o build/data_conversion.o build/ht_list.o build/linked_list.o build/sl_security.o build/sl_bgapi.o build/sl_interface.o -shared -o build/libslbtmeshgw.so -lpthread -lcrypto
+-----------------------------------------------------------------------------------------------
+gcc -DMESH_GW_POSIX -DLINUX -I./ -fno-short-enums -Wall -c -fmessage-length=0 -std=gnu99 -fPIC -lpthread -lrt -O2 -MMD -MP -MF -Wall -ggdb -c -o sl_interface.o sl_interface.c
+
+$aarch64-linux-gnu-gcc -DMESH_GW_POSIX -DLINUX -I./ -fno-short-enums -Wall -c -fmessage-length=0 -std=gnu99 -fPIC -lpthread -lrt -O2 -MMD -MP -MF -Wall -ggdb -c -o sl_security.o sl_security.c 
+
+$aarch64-linux-gnu-gcc -DMESH_GW_POSIX -DLINUX -I./ -I/home/sandeepraj/bluetooth_src/openssl/include -fno-short-enums -Wall -c -fmessage-length=0 -std=gnu99 -fPIC -lpthread -lrt -O2 -MMD -MP -MF -Wall -ggdb -c -o sl_security.o sl_security.c 
+
+sandeepraj@sandeeprajaztech:~/blu_app/ble-mesh-gateway-v1.2-GA/ble-mesh-gw-v1.2-ga/src/ports/posix$ /usr/bin/aarch64-linux-gnu-gcc  -O2 -pipe -g -feliminate-unused-debug-types  -DMESH_GW_POSIX   -DLINUX -I../../../inc/ -I../../../inc/posix/ -I../../../inc/core-inc -I../../../inc/ports-inc -I../../../inc/ports-inc/posix -I../../../inc/security-inc -I../../../inc/utility-inc -I../../../src/ports/posix/sample -I/home/sandeepraj/blu_app/openssl/include -L/home/sandeepraj/blu_app/openssl -fno-short-enums -Wall -c -fmessage-length=0 -std=gnu99 -fPIC -lpthread -lrt -O2 -MMD -MP -MF build/sl_security.d -Wall -ggdb -c -o build/sl_security.o ../../../src/security/sl_security.c
+
+
+aarch64-linux-gnu-gcc -Wall -ggdb *.o -shared -o libslbtmeshgw.so -lpthread -lcrypto
+-----------------------------------------------------------------------------------------------
+Openssl cross compilation,
+
+$./Configure linux-aarch64 shared -DL_ENDIAN --prefix=/home/sandeepraj/bluetooth_src --openssldir=/home/sandeepraj/bluetooth_src/openssl 
+$make CC=/usr/bin/aarch64-linux-gnu-gcc RANLIB=/usr/bin/aarch64-linux-gnu-ranlib LD=/usr/bin/aarch64-linux-gnu-gcc-ld MAKEDEPPROG=/usr/bin/aarch64-linux-gnu-gcc PROCESSOR=ARM64
+--------------------------------------------------------------------------------------------------
+Network settings of ubuntu by default,
+enp2s0:  inet 10.1.10.113  netmask 255.255.252.0  broadcast 10.1.11.255
+
+set ip on imx8mn board with command,
+#ifconfig eth0 10.1.10.111 netmask 255.255.252.0 broadcast 10.1.11.255
+----------------------------------------------------------------------------------------------
+wifi setup on the board,
+#ifconfig wlan0 up
+#vi /etc/wpa_supplicant.conf
+add wifi ssid and password as below,
+network={
+	scan_ssid=1
+	ssid="Aztech_WMB250AC"
+	psk="D7BB0021"
+}
+#wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant.conf -D nl80211
+#ifconfig wlan0
+#udhcpc -i wlan0
+#ping 8.8.8.8
+----------------------------------------------------------------------------------------------
+changes to aztech board with samsung ddr4 and new phy ar8035,
+$vim /home/sandeepraj/imx-yocto-bsp_min/sources/meta-imx/meta-bsp/conf/machine/imx8mnevk.conf
+-- require conf/machine/imx8mnlpddr4evk.conf
+++ require conf/machine/imx8mnddr4evk.conf
+
+
+changes to linux kernel after first compilation as below,
+$vim /home/sandeepraj/imx-yocto-bsp_min/build-wayland/tmp/work/imx8mnevk-poky-linux/linux-imx/5.4-r0/git/arch/arm64/boot/dts/freescale/imx8mn.dtsi
+
+	memory@40000000 {
+		device_type = "memory";
++		reg = <0x0 0x40000000 0 0x60000000>;
+	};
+
+	resmem: reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		/* global autoconfigured region for contiguous allocations */
+		linux,cma {
+			compatible = "shared-dma-pool";
+			reusable;
++			size = <0 0xa000000>;
++			alloc-ranges = <0 0x40000000 0 0x50000000>;
+			linux,cma-default;
+		};
+	};
+
+To enable ssh in core-image-base image,
+$pwd
+/home/sandeepraj/imx-yocto-bsp1/build-wayland/conf/
+$vim local.conf
+add below line to enable ssh on the board,
+EXTRA_IMAGE_FEATURES += "ssh-server-dropbear"
+
+Device tree changes regarding over current, But this is optional. 
+Not required to change in default nxp board or custom board. 
+usbotg1: usb@32e40000 {
+	compatible = "fsl,imx8mn-usb", "fsl,imx7d-usb";
+	reg = <0x32e40000 0x200>;
+	interrupts = <GIC_SPI 40 IRQ_TYPE_LEVEL_HIGH>;
+	clocks = <&clk IMX8MN_CLK_USB1_CTRL_ROOT>;
+	clock-names = "usb1_ctrl_root_clk";
+	assigned-clocks = <&clk IMX8MN_CLK_USB_BUS>;
+	assigned-clock-parents = <&clk IMX8MN_SYS_PLL2_500M>;
+	fsl,usbphy = <&usbphynop1>;
+	fsl,usbmisc = <&usbmisc1 0>;
+	power-domains = <&usb_otg1_pd>;
++	disable-over-current;
+-	status = "disabled";
++	status = "okay";
+};
+
+Device tree changes regarding usb interface,
+$pwd
+/home/sandeepraj/imx-yocto-bsp1/build-wayland/tmp/work-shared/imx8mnevk/kernel-source/arch/arm64/boot/dts/freescale
+$vim imx8mn-ddr4-evk.dts
+&usbotg1 {
+        picophy,pre-emp-curr-control = <3>;
+        picophy,dc-vol-level-adjust = <7>;
+//      dr_mode = "otg";
+        dr_mode = "host";
+        hnp-disable;
+        srp-disable;
+        adp-disable;
+//      usb-role-switch;
+        status = "okay";
+/*
+        port {
+                usb1_drd_sw: endpoint {
+                        remote-endpoint = <&typec1_dr_sw>;
+                };
+        };
+*/
+};
+
+/*
+        ptn5110_1: tcpc@50 {
+                compatible = "nxp,ptn5110";
+                pinctrl-names = "default";
+                pinctrl-0 = <&pinctrl_typec1>;
+                reg = <0x50>;
+                interrupt-parent = <&gpio2>;
+                interrupts = <11 8>;
+                status = "okay";
+
+                port {
+                        typec1_dr_sw: endpoint {
+                                remote-endpoint = <&usb1_drd_sw>;
+                        };
+                };
+
+                typec1_con: connector {
+                        compatible = "usb-c-connector";
+                        label = "USB-C";
+                        power-role = "dual";
+                        data-role = "dual";
+                        try-power-role = "sink";
+                        source-pdos = <PDO_FIXED(5000, 3000, PDO_FIXED_USB_COMM)>;
+                        sink-pdos = <PDO_FIXED(5000, 3000, PDO_FIXED_USB_COMM)
+                                     PDO_VAR(5000, 20000, 3000)>;
+                        op-sink-microwatt = <15000000>;
+                        self-powered;
+                };
+        };
+*/
+disable other drivers except ch341 driver for ct-sensor uart.
+---------------------------------------------------------------------------------------------
+debug printf,
+printf("file-%s,func-%s,line-%d\n",__FILE__,__func__,__LINE__);
+-------------------------------------------------------------------------------------------
+print time on console with every enter,
+$PS1='[\D{%H:%M:%S-%d-%m-%Y}]\u@\h:\w$'
+[14:25:50-14-04-2021]sandeepraj@sandeeprajaztechdesk:~/imx-yocto-bsp1$
+--------------------------------------------------------------------------------------------
+cross compiling minicom,
+after building sdk for the main bsp,
+$pwd
+/home/sandeepraj/ct_sensor/minicom-master/
+$source /opt/fsl-imx-wayland/5.4-zeus/environment-setup-aarch64-poky-linux
+$./configure CC=aarch64-linux-gnu-gcc --host=aarch64-linux-gnu
+$make
+$cd src/
+$file minicom
+minicom: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=9f66c19cac035ce0bacce3a96ec300f6eb156f31, for GNU/Linux 3.14.0, with debug_info, not stripped
+$./minicom -s
+-------------------------------------------------------------------------------------------
+buildroot settings,
+Target options -> Target Architecture -> AArch64 (little endian)
+Target Binary Format -> ELF
+Target Architecture Variant -> Cortex-A53
+Floating point strategy -> VFPv4-D16
+Toolchain->GCC compiler version -> gcc 9.x
+------------------------------------------------------------------------------------------
+cscope setup,
+$find . -name "*.c" -o -name "*.h" > cscope.files
+$cscope -q -R -b -i cscope.files 
+$cscope -d
+
+ctags setup,
+$ctags -R .
+$vim
+
+keyboard shortcuts are common to ctags and cscope,
+$vim or $cscope -d --> start
+:ts main
+ctrl+} --> to go inside the function or variables
+ctrl+t --> to come back from the function or variables
+:ts --> to see list of functions or variables
+:q or ctrl+z --> to quit
+-----------------------------------------------------------------------------------
+
