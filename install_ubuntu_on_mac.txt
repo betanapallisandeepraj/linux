@@ -1,0 +1,20 @@
+https://askubuntu.com/questions/1358468/installing-ubuntu-on-macbook-2019-with-macos-big-sur
+
+
+To install a solid Ubuntu with working grub, mouse, 
+touchpad and wi-fi on MacBook with said configuration 
+I have used a distribution from GitHub repo(https://github.com/marcosfad/mbp-ubuntu), 
+where Ubuntu versions for T2 MacBook are posted. 
+I've installed release v20.04-5.7.19-1 (download an ISO image, 
+write it on USB stick with balenaEtcher, 
+create a new disk partition for second OS, 
+enable booting from external media, 
+then run Ubuntu Live and use Ubiquity to install). 
+
+To enable wi-fi I followed steps proposed AdityaGarg8(https://github.com/marcosfad/mbp-ubuntu/issues/46):
+
+install necessary kernel modules with DKMS(https://wiki.t2linux.org/guides/dkms/)
+upgrade kernel from v5.13.12-1(https://github.com/AdityaGarg8/T2-Big-Sur-Ubuntu-Kernel/releases/tag/v5.13.12-1)
+
+follow this guide(https://wiki.t2linux.org/guides/wifi/)
+After that I have Ubuntu running without problem on Mac with configuration that described in the question.
