@@ -158,6 +158,16 @@ $ifconfig wlan0 down
 $ifconfig wlan0 up
 $ip link set down dev wlan0
 $ip link set up dev wlan0
+
+Change the submodel of the helix,
+replace RM-xxxx-xx-xx  with following model,
+RM-1675-2L-X, RM-1815-2L-X, RM-2065-2L-X, RM-2245-2L-X, RM-2350-2L-X, RM-2455-2L-X, RM-2450-2L-X
+$uci -q set system.@system[0].submodel="RM-xxxx-xx-xx"
+$uci commit system
+$fes_apply_defaults.sh
+$fes_update.sh radio0
+$wifi
+
 --------------------------------------------------------------------------------------------
 To setup dynamic meshmode or any mode,
 or if ssh connection is failing to connect to 192.168.1.1,
@@ -179,6 +189,8 @@ $dmesg | tail 	--> disconnect and connect the cable and see the interface name
 $route -n
 $ping6 fe80::%eth0
 $ping6 ff00::%eth0			--> ff00::/8
+$ping6 -I eth1 ff80:83:face:b00c::25de
+$ping6 -I eth1 ff80::
 $ip -6 neighbour
 $ip a show br-wan
 $ssh root@fe80::230:1aff:fe4f:3df9%eth0
@@ -474,7 +486,7 @@ $git config --list
 $git commit -s -m "commit message"
 $git push
 $git commit --amend -m "New commit message"			--> usefull in changing the most recent commit message
-$git branch –delete <branchname>
+$git branch –-delete <branchname>
 
 $cat .gitignore
 $ls build_dir/
@@ -584,6 +596,15 @@ $git log
 $git branch 
 $git push
 $git log
+
+$git rebase origin/firmware-2022-10-release 2022-11-02_add_set_band_simpleconfig
+$git log
+$git branch 
+$git checkout firmware-2022-10-release
+$git branch 
+$git merge 2022-11-02_add_set_band_simpleconfig
+$git log
+$git push
 ------------------------------------------------------------------------------------
 CONFIG_KERNEL_KALLSYMS=y
 CONFIG_KERNEL_DEBUG_INFO=y
@@ -1182,6 +1203,10 @@ $rmlint
 $ncdu
 $btop	-> press p to see different preset views
 $ntfy send "hello"
+$top
+$htop	-> press F5 to see the processes by tree
+$powertop -> shows the power consumption of processes, use tab to switch different menu
+$pstree
 -------------------------------------------------------------------------
 $echo "$SHELL"
 $cat /etc/shells
@@ -1312,6 +1337,16 @@ calibration commands,
 #iw dev mon0 set bitrates legacy-2.4 $1
 
 #iwinfo mon0 htmodelist
+
+#iwinfo phy0 info
+#iwinfo phy0 scan
+#iwinfo phy0 txpowerlist
+#iwinfo phy0 freqlist
+#iwinfo phy0 assoclist
+#iwinfo phy0 countrylist
+#iwinfo phy0 htmodelist
+#cat /sys/kernel/debug/ieee80211/phy0/ath9k/chanbw_avail
+$iwinfo wlan0 info
 --------------------------------------------------------------------------------------------
 ssh and scp enable in kali linux,
 install openssh-server
@@ -1358,8 +1393,83 @@ or one can use Ctrl+R to search in previously used commands and press enter to e
 --------------------------------------------------------
 while infinite loop in shell script,
 $while true;do sleep 0.001;cat /proc/meminfo | grep Buffers;done
+while true;do sleep 1;echo 123;done
 ----------------------------------------------------------------------
 hexdump of a file,
 $hexdump -C /opt/keep_value
 ---------------------------------------------------------------------
 $grep "PROFILE CONFIGURATION:" -r ./*
+-----------------------------
+$sudo lsof > all_processes_paths.txt 	--> shows all processes and file paths
+----------------------------------------------------------------
+$sudo dd if=/dev/zero of=/dev/sda bs=4096 status=progress
+$sudo parted /dev/sda --script -- mklabel gpt
+$sudo parted /dev/sda --script -- mkpart primary ext4 0% 100%
+$sudo mkfs.ext4 -F /dev/sdb1
+------------------------------------------------------------------------
+to configure openwrt,
+$cd openwrt_src
+$make menuconfig
+$make kernel_menuconfig
+$make -C build_dir/target-mips_24kc_musl/busybox-1.30.1/ menuconfig	--> it does not save main configuration of openwrt.
+so use 'make menuconfig' 
+-----------------------------------------------------
+$cat /proc/timer_list
+----------------------------------------------------
+To turn off TPC and turn on LNA,
+fes_phy=$(/usr/share/simpleconfig/get_fes_phy.sh)
+uci set wireless.radio$fes_phy.dynamic_txpower='0'
+uci set wireless.radio$fes_phy.dynamic_txpower_aggr='0'
+uci commit
+/etc/init.d/ath9k_tpcd restart
+if [ "$(sr_personality --single-antenna)" == "true" ]; then
+        dl-prism-ctrl 1 7 3
+else
+        dl-prism-ctrl 1 7 1
+fi
+
+
+
+To turn off TPC and turn off LNA,
+fes_phy=$(/usr/share/simpleconfig/get_fes_phy.sh)
+uci set wireless.radio$fes_phy.dynamic_txpower='0'
+uci set wireless.radio$fes_phy.dynamic_txpower_aggr='0'
+uci commit
+/etc/init.d/ath9k_tpcd restart
+dl-prism-ctrl 1 7 0
+---------------------------------------------------------------------------
+$logread -e wpa_supplicant
+$iwinfo wlan0 info
+----------------------------------------------
+$uci delete wireless.default_radio0.disassoc_low_ack='0'
+$uci set wireless.default_radio0.mesh_rssi_threshold='-80'
+$uci commit wireless
+$iw dev wlan0 set mesh_param mesh_fwding 1
+$iw dev wlan0 set mesh_param mesh_gate_announcements 1
+$iw dev wlan0 set mesh_param mesh_rssi_threshold -80
+$iw dev wlan0 set mesh_param mesh_hwmp_rootmode 3
+-------------------------------
+$lsusb
+---------------------------------------------------------
+For production calibration,
+Mini-circuits usb/lan power sensor PWR-SEN-6RMS-RC,
+$python2 --version
+2.7.18
+$python2 PM.py 1675
+
+SP4T RF switch,
+$python2 SW.py 1
+$python2 SW.py 2
+$python2 SW.py 3
+$python2 SW.py 4
+---------------------------------------------------------------------
+Please refer below to simulate high CPU load:
+$sha1sum /dev/zero &
+or
+$sha256sum /dev/zero &
+commands for every core in your system.
+
+To stop
+$killall sha1sum
+or
+$kill sha1sum
